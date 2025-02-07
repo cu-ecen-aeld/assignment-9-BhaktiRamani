@@ -13,7 +13,7 @@ git submodule update --init--recursive
 
 git add .
 git commit -m "Buildroot added"
-git push origin master
+git push origin main
 
 
 
