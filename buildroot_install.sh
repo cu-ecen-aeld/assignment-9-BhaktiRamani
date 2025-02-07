@@ -6,7 +6,7 @@ BUILDROOT_DIR=/home/bakri/Work/1_CU_Boulder/AESD/assignment-4-BhaktiRamani
 
 echo "Installing Buildroot"
 
-git submodule add -b ${BUILDROOT_VERSION} ${BUILDROOT_REPO} ${BUILDROOT_DIR}
+git submodule add -b ${BUILDROOT_VERSION} ${BUILDROOT_REPO} 
 
 git submodule update --init--recursive
 
