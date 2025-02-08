@@ -6,6 +6,6 @@ if [ -d buildroot ]; then
     echo "Cleaning the buildroot"
     make -C buildroot distclean
 else
-    echo "Buildroot directory does not exist"
+    echo "Buildroot directory doesn't exist"
 fi
 
