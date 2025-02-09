@@ -17,7 +17,7 @@ git push origin main
 
 
 
-echo "Buildroot successfully added assignment 4"
+echo "Buildroot successfully added "
 
 
 
