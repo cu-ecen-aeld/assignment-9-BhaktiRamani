@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# This file is for Personal use
+# Bhakti Ramani
+
+
+
+
 # List of required packages with correct names for Ubuntu
 PACKAGES=(
     "which"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This file is for Personal use
+# Bhakti Ramani
+
+
 BUILDROOT_REPO=https://gitlab.com/buildroot.org/buildroot/
 BUILDROOT_VERSION=2024.02.x
 BUILDROOT_DIR=/home/bakri/Work/1_CU_Boulder/AESD/assignment-4-BhaktiRamani
