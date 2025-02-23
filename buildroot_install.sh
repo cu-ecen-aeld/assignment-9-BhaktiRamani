@@ -21,7 +21,7 @@ git push origin main
 
 
 
-echo "Buildroot successfully added "
+echo "Buildroot successfully Added    "
 
 
 
