@@ -1,0 +1,123 @@
+#!/bin/sh
+
+# Helper function to create device nodes
+create_device_node() {
+    device=$1
+    major=$2
+    minor=$3
+    
+    echo "Creating device node: /dev/${device}"
+    rm -f /dev/${device}
+    mknod /dev/${device} c $major $minor
+    chgrp staff /dev/${device}
+    chmod 664 /dev/${device}
+}
+
+# Helper function to remove device nodes
+remove_device_node() {
+    device=$1
+    echo "Removing device node: /dev/${device}"
+    rm -f /dev/${device}
+}
+
+# Main script logic
+case "$1" in
+    start)
+        echo "Loading kernel modules..."
+        
+        # Load hello module
+        echo "Loading hello module"
+        modprobe hello
+        
+        # Load scull module and create device nodes
+        echo "Loading scull module"
+        insmod /lib/modules/$(uname -r)/extra/scull.ko
+        
+        # Get major number for scull
+        scull_major=$(awk '$2=="scull" {print $1}' /proc/devices)
+        if [ -z "$scull_major" ]; then
+            echo "Failed to get scull major number"
+            exit 1
+        fi
+        
+        # Create scull device nodes
+        create_device_node "scull0" $scull_major 0
+        create_device_node "scull1" $scull_major 1
+        create_device_node "scull2" $scull_major 2
+        create_device_node "scull3" $scull_major 3
+        ln -sf scull0 /dev/scull
+        
+        # Create scullpipe device nodes
+        create_device_node "scullpipe0" $scull_major 4
+        create_device_node "scullpipe1" $scull_major 5
+        create_device_node "scullpipe2" $scull_major 6
+        create_device_node "scullpipe3" $scull_major 7
+        ln -sf scullpipe0 /dev/scullpipe
+        
+        # Create other scull device nodes
+        create_device_node "scullsingle" $scull_major 8
+        create_device_node "sculluid" $scull_major 9
+        create_device_node "scullwuid" $scull_major 10
+        create_device_node "scullpriv" $scull_major 11
+        
+        # Load faulty module and create device node
+        echo "Loading faulty module"
+        insmod /lib/modules/$(uname -r)/extra/faulty.ko
+        
+        # Get major number for faulty
+        faulty_major=$(awk '$2=="faulty" {print $1}' /proc/devices)
+        if [ -z "$faulty_major" ]; then
+            echo "Failed to get faulty major number"
+            exit 1
+        fi
+        
+        # Create faulty device node
+        create_device_node "faulty" $faulty_major 0
+        
+        echo "All modules loaded successfully"
+        ;;
+        
+    stop)
+        echo "Unloading kernel modules..."
+        
+        # Remove hello module
+        echo "Removing hello module"
+        rmmod hello
+        
+        # Remove scull device nodes
+        remove_device_node "scull0"
+        remove_device_node "scull1"
+        remove_device_node "scull2"
+        remove_device_node "scull3"
+        remove_device_node "scullpipe0"
+        remove_device_node "scullpipe1"
+        remove_device_node "scullpipe2"
+        remove_device_node "scullpipe3"
+        remove_device_node "scullsingle"
+        remove_device_node "sculluid"
+        remove_device_node "scullwuid"
+        remove_device_node "scullpriv"
+        remove_device_node "scull"
+        remove_device_node "scullpipe"
+        
+        # Unload scull module
+        echo "Unloading scull module"
+        rmmod scull
+        
+        # Remove faulty device node
+        remove_device_node "faulty"
+        
+        # Unload faulty module
+        echo "Unloading faulty module"
+        rmmod faulty
+        
+        echo "All modules unloaded successfully"
+        ;;
+        
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0
