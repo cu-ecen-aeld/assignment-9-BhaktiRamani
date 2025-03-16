@@ -1,0 +1,113 @@
+#!/bin/sh
+
+choose_group() 
+{
+    if grep -q '^staff:' /etc/group; then
+        echo "staff"
+    else
+        echo "wheel"
+    fi
+}
+
+load_mod() 
+{
+    local modName="aesdchar"
+    local modFile="/lib/modules/$(uname -r)/extra/${modName}.ko"  # Ensure correct path
+    local foundMajor
+
+    echo "Attempting to load module: $modName from $modFile"
+
+    # Ensure module dependencies are updated if depmod exists
+    if command -v depmod >/dev/null 2>&1; then
+        depmod -a
+    else
+        echo "Warning: depmod not found, skipping dependency resolution."
+    fi
+
+    # Load the module using insmod
+    if [ -f "$modFile" ]; then
+        if ! insmod "$modFile" 2>/dev/null; then
+            echo "Error: insmod failed for $modName. Check if the file exists: $modFile"
+            exit 1
+        fi
+    else
+        echo "Error: Module file $modFile not found!"
+        exit 1
+    fi
+
+    # Verify if the module is loaded
+    if ! lsmod | grep -q "$modName"; then
+        echo "Error: Module $modName failed to load."
+        exit 1
+    fi
+    echo "$modName module loaded successfully."
+
+    # Wait for module to register
+    sleep 1
+
+    # Retrieve the major number from /proc/devices
+    foundMajor=$(awk '$2=="aesdchar" {print $1}' /proc/devices)
+    if [ -z "$foundMajor" ]; then
+        echo "Error: Could not find major number for $modName in /proc/devices."
+        exit 1
+    fi
+
+    # Remove old device node if it exists
+    rm -f /dev/"$modName"
+
+    # Create the new device node
+    mknod /dev/"$modName" c "$foundMajor" 0
+    chgrp "$MAIN_GROUP" /dev/"$modName"
+    chmod 666 /dev/"$modName"
+
+    echo "/dev/$modName created successfully with major number $foundMajor."
+}
+
+unload_mod() 
+{
+    local modName="aesdchar"
+
+    echo "Attempting to unload module: $modName"
+
+    # Try removing using modprobe first, fallback to rmmod
+    if ! modprobe -r "$modName" 2>/dev/null; then
+        echo "modprobe -r failed, trying rmmod"
+        if ! rmmod "$modName"; then
+            echo "Error: Failed to unload $modName module."
+            exit 1
+        fi
+    fi
+
+    # Remove the device node if it exists
+    if [ -e "/dev/$modName" ]; then
+        rm -f /dev/"$modName"
+        echo "/dev/$modName removed successfully."
+    fi
+
+    echo "$modName module unloaded successfully."
+}
+
+MAIN_GROUP=$(choose_group)
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 {start|stop}"
+    exit 1
+fi
+
+case "$1" in
+    start)
+        echo "Loading aesdchar module..."
+        load_mod
+        ;;
+    stop)
+        echo "Unloading aesdchar module..."
+        unload_mod
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0
+
