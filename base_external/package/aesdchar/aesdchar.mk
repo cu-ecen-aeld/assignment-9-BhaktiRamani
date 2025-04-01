@@ -6,7 +6,7 @@
 ##############################################################
 
 #TODO: Fill up the contents below in order to reference your assignment 7 git contents
-AESDCHAR_VERSION = 62250a8818d51995b958af01dec6242d32863e78
+AESDCHAR_VERSION = 238aa2ab31f55712e9034b10d755225cb63bf5c6
 
 # Note: Be sure to reference the *ssh* repository URL here (not https) to work properly
 # with ssh keys and the automated build/test system.
@@ -19,3 +19,4 @@ AESDCHAR_MODULE_SUBDIRS = aesd-char-driver
 
 $(eval $(kernel-module))
 $(eval $(generic-package))
+
